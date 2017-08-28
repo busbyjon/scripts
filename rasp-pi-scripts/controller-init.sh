@@ -43,7 +43,7 @@ cp configuration.yaml /home/homeassistant/.homeassistant/
 
 # Install the kiosk mode stuff
 apt-get update
-apt-get -y install raspberrypi-ui-mods x11-xserver-utils unclutter chromium-browser
+apt-get -y install raspberrypi-ui-mods x11-xserver-utils unclutter chromium-browser python-dev
 
 sed -e '/@xscreensaver -no-splash/s/^/#/g' -i /etc/xdg/lxsession/LXDE-pi/autostart
 echo -e '@xset s off\n@xset -dpms\n@xset s noblank\n@chromium-browser --noerrdialogs --kiosk http://192.168.0.201:3000 --incognito' >> /etc/xdg/lxsession/LXDE-pi/autostart
@@ -58,4 +58,4 @@ sed -i -e '$i \clusterhat on all\n' /etc/rc.local
 apt-get install sysstat
 
 DD_API_KEY=API KEY sh -c "$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/setup_agent.sh)"
-sed -i -e '$i \nohup sh /home/pi/.datadog-agent/bin/agent &\n' /etc/rc.local
+sed -i -e '$i \nohup sh /root/.datadog-agent/bin/agent &\n' /etc/rc.local
