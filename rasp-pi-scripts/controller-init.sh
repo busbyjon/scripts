@@ -1,34 +1,13 @@
 #!/bin/bash -x
 # Get any updates / install and remove pacakges
 apt-get update
+apt-get -y upgrade
 apt-get -y purge wolfram-engine # PIXEL only
 /bin/bash -c 'APT_LISTCHANGES_FRONTEND=none apt-get -y dist-upgrade'
 apt-get -y install bridge-utils wiringpi screen minicom
 
 # Disable APIPA addresses on ethpiX and eth0
 echo -e "# ClusterHAT\ndenyinterfaces eth0 ethpi1 ethpi2 ethpi3 ethpi4" >> /etc/dhcpcd.conf
-
-
-# Enable uart (needed for Pi Zero W)
-lua - enable_uart 1 /boot/config.txt <<EOF > /boot/config.txt.bak
-local key=assert(arg[1])
-local value=assert(arg[2])
-local fn=assert(arg[3])
-local file=assert(io.open(fn))
-local made_change=false
-for line in file:lines() do
-  if line:match("^#?%s*"..key.."=.*$") then
-    line=key.."="..value
-    made_change=true
-  end
-  print(line)
-end
-
-if not made_change then
-  print(key.."="..value)
-end
-EOF
-mv /boot/config.txt.bak /boot/config.txt
 
 # Setup a getty on the gadget serial port
 ln -fs /lib/systemd/system/getty@.service \
@@ -56,3 +35,27 @@ fi
 apt-get -y autoremove --purge
 apt-get clean
 
+echo "post-up ip link set br0 address b8:27:eb:91:ba:5c" >> /etc/network/interfaces
+
+
+cp configuration.yaml /home/homeassistant/.homeassistant/
+
+
+# Install the kiosk mode stuff
+apt-get update
+apt-get -y install raspberrypi-ui-mods x11-xserver-utils unclutter chromium-browser
+
+sed -e '/@xscreensaver -no-splash/s/^/#/g' -i /etc/xdg/lxsession/LXDE-pi/autostart
+echo -e '@xset s off\n@xset -dpms\n@xset s noblank\n@chromium-browser --noerrdialogs --kiosk http://192.168.0.201:3000 --incognito' >> /etc/xdg/lxsession/LXDE-pi/autostart
+
+# Rotate the display
+echo "lcd_rotate=2" >> /boot/config.txt
+
+sed -i -e '$i \clusterhat on all\n' /etc/rc.local
+
+#datadog
+
+apt-get install sysstat
+
+DD_API_KEY=API KEY sh -c "$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/setup_agent.sh)"
+sed -i -e '$i \nohup sh /home/pi/.datadog-agent/bin/agent &\n' /etc/rc.local
