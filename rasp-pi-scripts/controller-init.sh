@@ -37,10 +37,6 @@ apt-get clean
 
 echo "post-up ip link set br0 address b8:27:eb:91:ba:5c" >> /etc/network/interfaces
 
-
-cp configuration.yaml /home/homeassistant/.homeassistant/
-
-
 # Install the kiosk mode stuff
 apt-get update
 apt-get -y install raspberrypi-ui-mods x11-xserver-utils unclutter chromium-browser python-dev
